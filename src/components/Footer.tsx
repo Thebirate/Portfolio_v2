@@ -5,7 +5,7 @@ const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
   return (
     <footer className="w-full p-4 mt-8 component">
-      <div className="container mx-auto footer-container">
+      <div className="footer-container">
         <div className="flex space-x-4 mb-4 md:mb-0">
           <a href="https://github.com/yourusername" target="_blank" rel="noopener noreferrer" className="text-white hover:text-gray-400">
             <FaGithub size={24} />

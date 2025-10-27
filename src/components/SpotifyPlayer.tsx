@@ -9,7 +9,7 @@ const songList = [
 
 const SpotifyPlayer: React.FC = () => {
   return (
-    <section className="container mx-auto p-4 my-8 spotify-player">
+    <section className="w-full p-4 my-8 spotify-player">
       <h2 className="text-3xl font-bold mb-6 text-center">My Favorite Tunes</h2>
       <div>
         <ul>
