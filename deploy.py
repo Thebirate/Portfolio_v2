@@ -2,7 +2,6 @@ import subprocess
 import sys
 
 # --- Configuration ---
-# Set the main branches for the script
 DEV_BRANCH = "development"
 MAIN_BRANCH = "main"
 
@@ -11,7 +10,6 @@ MAIN_BRANCH = "main"
 def run_command(command, fail_on_error=True):
     """Executes a shell command and prints the output."""
     try:
-        # Check=True will raise an error if the command fails
         result = subprocess.run(
             command, 
             shell=True, 
@@ -28,7 +26,7 @@ def run_command(command, fail_on_error=True):
         
         if "conflict" in e.stderr.lower():
             print("\n⚠️ MANUAL INTERVENTION REQUIRED: Git Merge Conflict Detected!")
-            print("Please resolve the conflict(s) manually in your code editor.")
+            print("Please resolve the conflict(s) manually in your code editor before rerunning.")
         
         if fail_on_error:
             sys.exit(1)
@@ -39,91 +37,89 @@ def run_command(command, fail_on_error=True):
 
 def commit_changes(commit_message):
     """Stages and commits local changes."""
-    print("\n--- 1. Staging and Committing Changes ---")
-    
-    # Stage all unstaged changes
+    print("\n--- Staging and Committing Changes ---")
     run_command("git add .")
-    
-    # Perform the commit with the user's message
-    run_command(f'git commit -m "{commit_message}"')
-    print(f"👍 Changes successfully committed locally with message: '{commit_message}'")
+    # Using fail_on_error=False because 'git commit' fails if there are no new changes, but we want to proceed.
+    run_command(f'git commit -m "{commit_message}"', fail_on_error=False) 
+    print(f"👍 Changes successfully committed locally.")
 
-def deploy_to_dev():
-    """Implements Steps 1-4: Commit, push to development, trigger DEV deployment."""
-    print("\n--- 2. Deploying to Development Environment (Staging) ---")
-    
-    # Checkout development branch
+def push_to_dev():
+    """Pushes the current branch's latest commit to the remote DEV branch."""
+    print(f"\n--- Pushing to {DEV_BRANCH} (DEV Deployment Trigger) ---")
     run_command(f"git checkout {DEV_BRANCH}")
-    
-    # Push the latest development code (Triggers CI/CD Job: deploy-dev)
     run_command(f"git push origin {DEV_BRANCH}")
-    print("\n🚀 Development branch pushed.")
-    print("Action 4 Complete: Check GitHub Actions for DEV deployment (e.g., dev.xasan.net).")
+    print("\n🚀 DEV deployment triggered. Check GitHub Actions for DEV environment status.")
 
-def merge_and_deploy_to_prod():
-    """Implements Steps 6-7: Merge to main, push to main, trigger PROD deployment."""
-    print("\n--- 3. Merging to Main and Deploying to Production ---")
+def merge_and_push_to_prod():
+    """Merges DEV into MAIN and pushes, triggering the PROD deployment."""
+    print(f"\n--- Merging to {MAIN_BRANCH} (PROD Deployment Trigger) ---")
 
-    # Checkout main
+    # 1. Ensure local main is current
     run_command(f"git checkout {MAIN_BRANCH}")
-    
-    # Pull the latest remote main to prevent divergence/rollbacks
     run_command(f"git pull origin {MAIN_BRANCH}")
     
-    # Merge development into main
+    # 2. Merge development into main
     print(f"🔄 Merging changes from '{DEV_BRANCH}' into '{MAIN_BRANCH}'...")
     run_command(f"git merge {DEV_BRANCH}")
     
-    # Push the updated main to remote (Triggers CI/CD Job: deploy-prod)
+    # 3. Push the updated main to remote
     run_command(f"git push origin {MAIN_BRANCH}")
-    print("\n🎉 Main branch pushed (Action 7 Complete).")
-    print("⚠️ WARNING: PROD deployment triggered and is awaiting manual approval on GitHub.")
+    print("\n🎉 PROD push complete.")
+    print("⚠️ WARNING: Deployment triggered and is awaiting **manual approval** on GitHub.")
     
-    # Switch back to development for continued work
+    # 4. Switch back to development
     run_command(f"git checkout {DEV_BRANCH}")
 
 
 def automated_menu():
-    """Main function to guide the user through the process."""
+    """Main function to guide the user through the deployment choices."""
     print("="*60)
     print("Cloud CI/CD Workflow Automation Tool")
     print("="*60)
     
-    # --- Check for Changes ---
-    status_output = run_command("git status --porcelain", fail_on_error=False)
-    if not status_output:
-        print("⚠️ Warning: No unstaged or modified files found.")
-    
-    # --- Get Commit Message ---
+    # --- Commit/Input Phase ---
     commit_text = input("\n📝 Enter the commit message for these changes:\n> ")
     if not commit_text.strip():
         print("❌ Commit message cannot be empty. Script terminated.")
         sys.exit(1)
         
-    # Commit changes before proceeding
     commit_changes(commit_text)
-
-
-    # --- Menu Selection ---
+    
+    # --- Menu Selection Phase ---
     print("\n" + "="*60)
-    print("Choose the next action:")
-    print(f"  1) Deploy to DEV (Push to {DEV_BRANCH}) - Go to Step 4")
-    print(f"  2) Promote to PROD (Merge to {MAIN_BRANCH}) - Go to Step 6")
+    print("Choose the next deployment action:")
+    print(f"  1) Deploy to DEV (Push ONLY to {DEV_BRANCH}) - For testing/QA.")
+    print(f"  2) Release to PROD (Push to {DEV_BRANCH}, then Merge to {MAIN_BRANCH}) - Full release sequence.")
     print("  3) Exit")
     print("="*60)
     
     choice = input("Enter option number (1, 2, or 3): ")
 
     if choice == '1':
-        deploy_to_dev()
+        # Option 1: Commit, Push to DEV, STOP
+        push_to_dev()
+        print("\n--- Deployment Sequence 1 Finished ---")
+    
     elif choice == '2':
-        merge_and_deploy_to_prod()
+        # Option 2: Commit, Push to DEV, Merge to MAIN, Push to MAIN
+        
+        # 1. Push to DEV (ensures remote DEV is up-to-date)
+        push_to_dev()
+        
+        print("\n*** ACTION PAUSED FOR QA ***")
+        input("Press ENTER to confirm testing is complete and begin PROD promotion...")
+        
+        # 2. Merge to Main
+        merge_and_push_to_prod()
+        
+        print("\n--- Deployment Sequence 2 Finished ---")
+
     elif choice == '3':
         print("\nDeployment cancelled.")
     else:
         print("\nInvalid choice. Please run the script again.")
         
-    print("\n--- Process Finished ---")
+    print("\nLocal branch reset to 'development' for continuous work.")
 
 if __name__ == "__main__":
     automated_menu()
