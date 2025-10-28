@@ -7,7 +7,7 @@ const Header: React.FC = () => {
         <div className="flex items-center justify-center mb-4">
           {/* Replace with your logo image */}
           <img src="/vite.svg" alt="Logo" className="h-8 w-8 mr-2" />
-          <span className="text-white text-lg font-bold">Your Name</span>
+          <span className="text-white text-lg font-bold">Yo Name</span>
         </div>
         <div className="text-center">
           <h1 className="text-4xl font-bold mb-2">Hello, I am Hassan</h1>
