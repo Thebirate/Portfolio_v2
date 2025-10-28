@@ -12,13 +12,7 @@ body {
   font-family: 'Manrope', sans-serif;
 }
 
-/* Background image applied only to the centered wrapper */
-.site-bg {
-  background-image: url('/images/noisy-gradients.png');
-  background-repeat: no-repeat;
-  background-size: cover;
-  background-position: center;
-}
+/* Background image now applied via Tailwind classes in App.tsx */
 
 .font-vt323 {
   font-family: 'VT323', monospace;

@@ -6,7 +6,7 @@ import Footer from './components/Footer';
 function App() {
   return (
     <div className="min-h-screen flex flex-col w-full overflow-x-hidden">
-      <div className="w-full max-w-[1200px] mx-auto px-4 md:px-6 site-bg">
+      <div className="w-full max-w-[1200px] mx-auto px-4 md:px-6 bg-[url('/images/noisy-gradients.png')] bg-no-repeat bg-cover bg-center">
         <Header />
         <main className="flex-grow">
           <Projects />

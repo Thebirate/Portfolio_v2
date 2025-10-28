@@ -1,9 +1,11 @@
 name: Deploy Vite site to S3
-on:
+'on':
   push:
-    branches: [ main ]
+    branches:
+      - main
   workflow_dispatch:
 
+    null
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -16,10 +18,11 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
 
       - name: Install and Build
         run: |
+          cd Portfolio_v2
           npm ci
           npm run build
 
@@ -31,13 +34,13 @@ jobs:
 
       - name: Sync assets
         run: |
-          aws s3 sync dist s3://${{ env.S3_BUCKET }} \
+          aws s3 sync Portfolio_v2/dist s3://${{ env.S3_BUCKET }} \
             --delete \
             --exclude "index.html" \
             --cache-control "public,max-age=31536000,immutable"
 
       - name: Upload index.html
         run: |
-          aws s3 cp dist/index.html s3://${{ env.S3_BUCKET }}/index.html \
+          aws s3 cp Portfolio_v2/dist/index.html s3://${{ env.S3_BUCKET }}/index.html \
             --cache-control "no-cache, no-store, must-revalidate" \
             --content-type "text/html"
